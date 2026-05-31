@@ -2,7 +2,7 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/deivi
 
 local Window = Library:CreateWindow({
     Title = "yagami.cc",
-    Footer = "version: 1",
+    Footer = "version: 1.1",
     Icon = nil,
     NotifySide = "Right",
     DisableSearch = true,
@@ -57,9 +57,9 @@ end
 
 local TBconnection
 
-local RGBAim = Tabs.Main:AddLeftGroupbox("Aim")
+local LGBAim = Tabs.Main:AddLeftGroupbox("Aim")
 
-local TBToggle = RGBAim:AddToggle("TriggerBot", {
+local TBToggle = LGBAim:AddToggle("TriggerBot", {
     Text = "Triggerbot",
     Default = false,
     Tooltip = "Shoots automatically when enemy in crosshair"
@@ -114,5 +114,59 @@ AntiFlash:OnChanged(function(state)
         LocalPlayer.PlayerScripts.PlayerBase.FlashbangEffect.Enabled = false
     else
         LocalPlayer.PlayerScripts.PlayerBase.FlashbangEffect.Enabled = true
+    end
+end)
+
+local LGBEsp = Tabs.Visuals:AddLeftGroupbox("ESP")
+
+local function addESP(char)
+    if char:FindFirstChild("ESP") then char:FindFirstChild("ESP"):Destroy() end
+
+    local function addit()
+        local plr = Players:GetPlayerFromCharacter(char)
+        if plr:GetAttribute("Team") == LocalPlayer:GetAttribute("Team") then return end
+
+        local Highlight = Instance.new("Highlight")
+        Highlight.Name = "ESP"
+        Highlight.FillColor = Color3.fromRGB(255, 0, 255)
+        Highlight.FillTransparency = 0.65
+        Highlight.OutlineTransparency = 1
+        Highlight.Parent = char
+    end
+
+    task.spawn(addit)
+end
+
+RefreshEsp = task.spawn(function()
+    while task.wait(5) do
+        for each, plr in pairs(Players:GetPlayers()) do
+            local Character = plr.Character or plr.CharacterAdded:Wait()
+            addESP(Character)
+        end
+    end
+end)
+
+local ChamsToggle = LGBEsp:AddToggle("Chams Toggle", {
+    Text = "Chams",
+    Default = false,
+    Tooltip = "Toggles the Extrasensory Perception."
+})
+
+ChamsToggle:OnChanged(function(state)
+    if state then
+        RefreshEsp = task.spawn(function()
+            while task.wait(5) do
+                for each, plr in pairs(Players:GetPlayers()) do
+                    if plr == LocalPlayer then return end
+                    local Character = plr.Character or plr.CharacterAdded:Wait()
+                    addESP(Character)
+                end
+            end
+        end)
+    else
+        if RefreshEsp then
+            RefreshEsp:Disconnect()
+            RefreshEsp = nil
+        end
     end
 end)
